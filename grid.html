@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JQXGRID</title>
+</head>
+<body>
+You can change fixed costs by clicking on the cell. When the value of fixed cost changes, so does the total
+cot and average total cost of the corresponding row.
+<div id='jqxgrid'></div>
+
+</body>
+</html>
+    <! -- This is to add source for jqwidget -->
+    <script src ="https://cdnjs.cloudflare.com/ajax/libs/jqwidgets/12.0.2/jqwidgets/jqx-all.js"></script>
+    <! -- This is to add source for jqwidget basic style -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqwidgets/12.0.2/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <! -- This is to add source for jqwidget energy blue style -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqwidgets/12.0.2/jqwidgets/styles/jqx.energyblue.css" type="text/css" />
+    <! -- Refer to this site for styling: https://www.jqwidgets.com/jquery-widgets-documentation/documentation/jqxgrid/jquery-grid-styling-and-appearance.html -->
+
+<! -- Define css for columns -->
+<style>
+    .inputcolumn {
+        background-color: #fce6f3;
+    }
+</style>
+
+<script>
+    //prepare data
+    var data = [];
+    var quantity = [16, 40, 60, 72];
+    var fixedcost = [160, 160, 160, 160];
+    var variablecost = [80, 160, 240, 320];
+    var totalcost = [];
+    var marginalcost = [5.00, 3.30, 4.00, 6.60];
+    var averagetotalcost = [];
+    var averagevariablecost = [5.00, 4.00, 4.00, 4.40];
+
+    for (var i = 0; i < 4; i++) {
+        var row = {};
+        row["quantity"] = quantity[i];
+        row["fc"] = fixedcost[i];
+        row["vc"] = variablecost[i];
+        row["tc"] = fixedcost[i] + variablecost[i];
+        row["mc"] = marginalcost[i];
+        row["atc"] = row["tc"]/quantity[i];
+        row["avc"] = averagevariablecost[i];
+        data[i] = row;
+    }
+
+    var source =
+        {
+            localdata: data,
+            datatype: "array",
+            datafields:
+                [
+                    {name: 'quantity', type: 'number'},
+                    {name: 'fc', type: 'number'},
+                    {name: 'vc', type: 'number'},
+                    {name: 'vc_set', type: 'number'},
+                    {name: 'tc', type: 'number'},
+                    {name: 'mc', type: 'number'},
+                    {name: 'atc', type: 'number'},
+                    {name: 'avc', type: 'number'}
+                ]
+        };
+    var dataAdapter = new $.jqx.dataAdapter(source);
+
+    //construct grid
+    $("#jqxgrid").jqxGrid(
+        {
+            width: 800,
+            source: dataAdapter,
+            columnsresize: true,
+            editable: true,
+            editmode: 'selectedcell',
+            showaggregates: true,
+            showstatusbar: true,
+            showcolumnlines: false,
+            showcolumnheaderlines: false,
+            theme: 'energyblue',
+            columns: [
+                {
+                    text: 'Quantity',
+                    datafield: 'quantity',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'd',
+                    editable: false},
+                //this is an input field
+                {
+                    text: 'Fixed Cost',
+                    datafield: 'fc',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'c2',
+                    columntype: 'numberinput',
+                    spinButtons:true,
+                    cellclassname: 'inputcolumn',
+                    editable: true,
+                    createeditor: function (row, cellvalue, editor) {
+                        editor.jqxNumberInput({decimalDigits: 0, digits: 3});
+                    },
+                    cellvaluechanging: function (row, datafield, columntype, oldvalue, newvalue) {
+                        var vc = $("#jqxgrid").jqxGrid('getcellvalue', row, "vc");
+                        var quantity = $("#jqxgrid").jqxGrid('getcellvalue', row, "quantity");
+                        $("#jqxgrid").jqxGrid('setcellvalue', row, "tc", newvalue + vc);
+                        $("#jqxgrid").jqxGrid('setcellvalue', row, "atc", (newvalue + vc)/quantity);
+                    }
+                },
+                {
+                    text: 'Variable Cost',
+                    datafield: 'vc',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'c2',
+                    editable: false},
+                {
+                    text: 'Total Cost',
+                    datafield: 'tc',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'c2',
+                    editable: false},
+                {
+                    text: 'Marginal Cost',
+                    datafield: 'mc',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'c2',
+                    editable: false},
+                {
+                    text: 'Average Total Cost',
+                    datafield: 'atc',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'c2',
+                    editable: false},
+                {
+                    text: 'Average Variable Cost',
+                    datafield: 'avc',
+                    align: 'right',
+                    cellsalign: 'right',
+                    cellsformat: 'c2',
+                    editable: false
+                }]
+        });
+</script>
